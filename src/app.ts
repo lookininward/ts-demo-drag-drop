@@ -1,3 +1,17 @@
+// autobind decorator
+function autobind(_1: any, _2: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFn = originalMethod.bind(this);
+      return boundFn;
+    },
+  };
+  return adjDescriptor;
+}
+
+// ProjectInput class
 class ProjectInput {
   templateElement: HTMLTemplateElement;
   hostElement: HTMLDivElement;
@@ -33,15 +47,43 @@ class ProjectInput {
     this.attach();
   }
 
+  private gatherUserInput(): [string, string, number] | void {
+    const enteredTitle = this.titleInputElement.value;
+    const enteredDescription = this.descriptionInputElement.value;
+    const enteredPeople = this.peopleInputElement.value;
+
+    if (
+      enteredTitle.trim().length === 0 ||
+      enteredDescription.trim().length === 0 ||
+      enteredPeople.trim().length === 0
+    ) {
+      alert("Invalid input. Please try again.");
+      return;
+    } else {
+      return [enteredTitle, enteredDescription, +enteredPeople];
+    }
+  }
+
+  private clearInputs() {
+    this.titleInputElement.value = "";
+    this.descriptionInputElement.value = "";
+    this.peopleInputElement.value = "";
+  }
+
+  @autobind
   private submitHandler(event: Event) {
     event.preventDefault();
-    const { titleInputElement, descriptionInputElement, peopleInputElement } =
-      this;
-      console.log(titleInputElement.value);
+    const userInput = this.gatherUserInput();
+
+    if (Array.isArray(userInput)) {
+      const [title, desc, people] = userInput;
+      console.log(title, desc, people);
+      this.clearInputs();
+    }
   }
 
   private configure() {
-    this.element.addEventListener("submit", this.submitHandler.bind(this));
+    this.element.addEventListener("submit", this.submitHandler);
   }
 
   private attach() {
